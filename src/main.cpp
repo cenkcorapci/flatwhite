@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
   }
 
   auto model = make_model_backend(cfg);
-  localagent::PermissionEngine permissions(true);
+  localagent::PermissionEngine permissions(cfg.workspace_root, cfg.permissions);
   localagent::ToolRegistry tools;
   localagent::AgentRuntime runtime(model, std::move(tools), permissions);
   runtime.set_event_log(

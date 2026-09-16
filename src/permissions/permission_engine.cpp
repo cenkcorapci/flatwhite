@@ -22,6 +22,10 @@ Policy to_policy(PolicySetting setting) {
 
 std::filesystem::path normalize_path(const std::filesystem::path& path) {
   std::error_code error;
+  const auto canonical = std::filesystem::weakly_canonical(path, error);
+  if (!error) {
+    return canonical;
+  }
   const auto absolute = std::filesystem::absolute(path, error);
   if (error) {
     return path.lexically_normal();
@@ -93,6 +97,25 @@ Policy PermissionEngine::check(RiskLevel risk, const std::filesystem::path& targ
     return Policy::Allow;
   }
   return evaluate(risk, target).policy;
+}
+
+bool PermissionEngine::allows(Policy policy) const {
+  if (allow_all_) {
+    return true;
+  }
+  switch (policy) {
+    case Policy::Allow:
+      return true;
+    case Policy::Ask:
+      // Non-interactive agent runs must not auto-approve Ask policies.
+      return interactive_;
+    case Policy::Sandbox:
+      // Sandbox execution is not implemented yet; fail closed.
+      return false;
+    case Policy::Deny:
+      return false;
+  }
+  return false;
 }
 
 Policy PermissionEngine::policy_for(RiskLevel risk) const {

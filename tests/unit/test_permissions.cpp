@@ -48,4 +48,7 @@ TEST_CASE("PermissionEngine honors configured network policy", "[permissions]") 
 
   const auto decision = engine.evaluate(localagent::RiskLevel::Network);
   REQUIRE(decision.policy == localagent::Policy::Ask);
+  REQUIRE_FALSE(engine.allows(decision.policy));
+  engine.set_interactive(true);
+  REQUIRE(engine.allows(localagent::Policy::Ask));
 }

@@ -4,7 +4,51 @@
 #include "localagent/permissions/command_classifier.hpp"
 #include "localagent/process/process.hpp"
 
+#include <cctype>
+#include <vector>
+
 namespace localagent {
+namespace {
+
+std::vector<std::string> tokenize_for_classification(std::string_view command) {
+  std::vector<std::string> tokens;
+  std::string current;
+  bool in_single = false;
+  bool in_double = false;
+  for (size_t i = 0; i < command.size(); ++i) {
+    const char c = command[i];
+    if (c == '\'' && !in_double) {
+      in_single = !in_single;
+      continue;
+    }
+    if (c == '"' && !in_single) {
+      in_double = !in_double;
+      continue;
+    }
+    if (!in_single && !in_double && (c == '|' || c == ';' || c == '&' || c == '\n')) {
+      if (!current.empty()) {
+        tokens.push_back(current);
+        current.clear();
+      }
+      tokens.emplace_back(1, c);
+      continue;
+    }
+    if (!in_single && !in_double && std::isspace(static_cast<unsigned char>(c))) {
+      if (!current.empty()) {
+        tokens.push_back(current);
+        current.clear();
+      }
+      continue;
+    }
+    current.push_back(c);
+  }
+  if (!current.empty()) {
+    tokens.push_back(current);
+  }
+  return tokens;
+}
+
+}  // namespace
 
 ToolDescriptor ShellTool::descriptor() const {
   return ToolDescriptor{
@@ -27,13 +71,19 @@ ToolResult ShellTool::execute(const ToolRequest& request, const ToolContext& ctx
   }
   ctx.cancellation.throw_if_cancelled();
 
-  const auto classification = classify_command({"/bin/sh", "-c", *command});
+  const auto tokens = tokenize_for_classification(*command);
+  const auto classification = classify_command(tokens.empty() ? std::vector<std::string>{*command}
+                                                              : tokens);
   const auto risk = classification.primary_risk;
-  if (ctx.permissions && ctx.permissions->check(risk, ctx.workspace_root) == Policy::Deny) {
-    return ToolResult{false,
-                      {},
-                      {},
-                      make_error(ErrorCategory::Permission, "denied", "shell command denied")};
+  if (ctx.permissions) {
+    const auto decision = ctx.permissions->evaluate(risk, ctx.workspace_root);
+    if (!ctx.permissions->allows(decision.policy)) {
+      return ToolResult{false,
+                        {},
+                        {},
+                        make_error(ErrorCategory::Permission, "denied",
+                                   "shell command denied: " + decision.reason)};
+    }
   }
 
   const int timeout = json_int(request.arguments, "timeout_seconds").value_or(300);

@@ -1,5 +1,7 @@
 #include "localagent/persistence/event_log.hpp"
 
+#include "localagent/common/redactor.hpp"
+
 #include <chrono>
 #include <fstream>
 #include <iomanip>
@@ -183,6 +185,15 @@ Event EventLog::append(const Event& event) {
   }
   if (stored.timestamp == std::chrono::system_clock::time_point{}) {
     stored.timestamp = std::chrono::system_clock::now();
+  }
+  if (stored.payload.is_string()) {
+    stored.payload = redact_secrets(stored.payload.get<std::string>());
+  } else if (stored.payload.is_object() || stored.payload.is_array()) {
+    stored.payload = nlohmann::json::parse(
+        redact_secrets(stored.payload.dump()), nullptr, false);
+    if (stored.payload.is_discarded()) {
+      stored.payload = nlohmann::json{{"redacted", true}};
+    }
   }
   write_jsonl(stored);
   mirror_sqlite(stored);

@@ -38,7 +38,9 @@ public:
   [[nodiscard]] Policy check(RiskLevel risk, const std::filesystem::path& target = {}) const;
   [[nodiscard]] PermissionDecision evaluate(RiskLevel risk,
                                             const std::filesystem::path& target = {}) const;
+  [[nodiscard]] bool allows(Policy policy) const;
   void set_allow_all(bool allow) { allow_all_ = allow; }
+  void set_interactive(bool interactive) { interactive_ = interactive; }
   [[nodiscard]] bool is_inside_workspace(const std::filesystem::path& path) const;
   [[nodiscard]] bool is_credential_path(const std::filesystem::path& path) const;
   [[nodiscard]] const std::filesystem::path& workspace() const noexcept { return workspace_; }
@@ -49,6 +51,7 @@ private:
   std::filesystem::path workspace_;
   PermissionsConfig config_;
   bool allow_all_{false};
+  bool interactive_{false};
 };
 
 }  // namespace localagent

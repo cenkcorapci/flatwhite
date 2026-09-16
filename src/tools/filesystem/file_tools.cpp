@@ -43,8 +43,9 @@ std::filesystem::path resolve_workspace_path(const ToolContext& ctx,
     }
   }
   if (!allow_outside && !path_within_workspace(ctx.workspace_root, p)) {
-    if (ctx.permissions &&
-        ctx.permissions->check(RiskLevel::OutsideWorkspaceWrite, p) != Policy::Allow) {
+    if (!ctx.permissions ||
+        !ctx.permissions->allows(
+            ctx.permissions->check(RiskLevel::OutsideWorkspaceWrite, p))) {
       throw std::runtime_error("path escapes workspace: " + user_path);
     }
   }
@@ -134,6 +135,12 @@ ToolResult ReadFileTool::execute(const ToolRequest& request, const ToolContext& 
   ctx.cancellation.throw_if_cancelled();
   try {
     const auto path = resolve_workspace_path(ctx, *path_str, false);
+    if (ctx.permissions) {
+      const auto decision = ctx.permissions->evaluate(RiskLevel::Read, path);
+      if (!ctx.permissions->allows(decision.policy)) {
+        return fail("permission denied: " + decision.reason);
+      }
+    }
     std::ifstream in(path, std::ios::binary);
     if (!in) {
       return fail("unable to open file");
@@ -165,8 +172,11 @@ ToolResult WriteFileTool::execute(const ToolRequest& request, const ToolContext&
   ctx.cancellation.throw_if_cancelled();
   try {
     const auto path = resolve_workspace_path(ctx, *path_str, false);
-    if (ctx.permissions && ctx.permissions->check(RiskLevel::WorkspaceWrite, path) == Policy::Deny) {
-      return fail("permission denied");
+    if (ctx.permissions) {
+      const auto decision = ctx.permissions->evaluate(RiskLevel::WorkspaceWrite, path);
+      if (!ctx.permissions->allows(decision.policy)) {
+        return fail("permission denied: " + decision.reason);
+      }
     }
     std::filesystem::create_directories(path.parent_path());
     if (!patch::atomic_write(path, *content)) {
