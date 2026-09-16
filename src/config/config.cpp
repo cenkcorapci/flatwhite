@@ -11,6 +11,10 @@
 
 #if defined(__APPLE__)
 #include <crt_externs.h>
+#elif !defined(_WIN32)
+// POSIX environ must be declared at global scope; a namespaced `extern` binds
+// a different symbol and fails to link under GCC/libstdc++.
+extern char** environ;
 #endif
 
 namespace localagent {
@@ -353,8 +357,7 @@ void apply_env_overrides(Config& config) {
     apply_env_override(config, entry.substr(0, equals), entry.substr(equals + 1));
   }
 #else
-  extern char** environ;
-  for (char** env = environ; env != nullptr && *env != nullptr; ++env) {
+  for (char** env = ::environ; env != nullptr && *env != nullptr; ++env) {
     const std::string_view entry{*env};
     const auto equals = entry.find('=');
     if (equals == std::string_view::npos) {

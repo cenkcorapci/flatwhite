@@ -5,6 +5,10 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -18,11 +22,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        include:
-          - os: ubuntu-latest
-            sanitizer: ""
-          - os: macos-latest
-            sanitizer: ""
 
     steps:
       - name: Checkout
@@ -32,12 +31,13 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build libcurl4-openssl-dev libsqlite3-dev pkg-config
+          sudo apt-get install -y cmake ninja-build g++ libcurl4-openssl-dev libsqlite3-dev pkg-config
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install cmake ninja
+          brew install ninja
+          # curl and sqlite ship with the runner; cmake is preinstalled
 
       - name: Configure
         run: |
@@ -61,11 +61,14 @@ jobs:
     name: ASan + UBSan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build libcurl4-openssl-dev libsqlite3-dev pkg-config
+          sudo apt-get install -y cmake ninja-build g++ libcurl4-openssl-dev libsqlite3-dev pkg-config
+
       - name: Configure with sanitizers
         run: |
           cmake -S . -B build-san -G Ninja \
@@ -73,8 +76,10 @@ jobs:
             -DLOCALAGENT_BUILD_TESTS=ON \
             -DLOCALAGENT_ENABLE_ASAN=ON \
             -DLOCALAGENT_ENABLE_UBSAN=ON
+
       - name: Build
         run: cmake --build build-san --parallel
+
       - name: Test
         env:
           ASAN_OPTIONS: detect_leaks=0

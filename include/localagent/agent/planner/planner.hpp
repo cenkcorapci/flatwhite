@@ -2,6 +2,7 @@
 
 #include "localagent/common/strong_id.hpp"
 
+#include <optional>
 #include <string>
 #include <vector>
 
