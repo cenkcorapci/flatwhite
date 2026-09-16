@@ -1,0 +1,18 @@
+[agent]
+default_mode = "agent"
+max_turns = 40
+
+[models]
+backend = "ollama"
+auto_route = true
+memory_budget_gb = 20
+
+[permissions]
+network = "ask"
+outside_workspace_write = "deny"
+credentials = "deny"
+destructive = "ask"
+privilege = "deny"
+
+[execution]
+timeout_seconds = 120

@@ -67,3 +67,15 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+.agent/sessions/
+.agent/cache/
+.agent/logs/
+.localagent/
+*.db
+compile_commands.json
+
+# IDE
+.idea/
+.vscode/
+*.xcuserdata/
+build2/
