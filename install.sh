@@ -80,6 +80,7 @@ fi
 
 cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" -G "$generator" \
   -DCMAKE_BUILD_TYPE=Release -DFLATWHITE_BUILD_TESTS=OFF
+rm -f "$BUILD_DIR/flatwhite"
 cmake --build "$BUILD_DIR" --parallel
 cmake --install "$BUILD_DIR" --prefix "$INSTALL_DIR"
 
