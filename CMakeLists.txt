@@ -125,6 +125,24 @@ if(LOCALAGENT_BUILD_TESTS)
   include(CTest)
   include(Catch)
   catch_discover_tests(localagent_tests)
+
+  add_test(
+    NAME integration_cli_help
+    COMMAND localagent --help
+  )
+  set_tests_properties(integration_cli_help PROPERTIES PASS_REGULAR_EXPRESSION "Usage:")
+
+  foreach(integration_case IN ITEMS fake_json sessions)
+    add_test(
+      NAME integration_cli_${integration_case}
+      COMMAND ${CMAKE_COMMAND}
+        -DLOCALAGENT_BINARY=$<TARGET_FILE:localagent>
+        -DLOCALAGENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -DLOCALAGENT_TEST_DIR=${CMAKE_CURRENT_BINARY_DIR}/integration/${integration_case}
+        -DLOCALAGENT_CASE=${integration_case}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/cli_smoke.cmake
+    )
+  endforeach()
 endif()
 
 install(TARGETS localagent RUNTIME DESTINATION bin)

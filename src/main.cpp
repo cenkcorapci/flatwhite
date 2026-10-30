@@ -12,6 +12,7 @@
 
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace {
 
@@ -61,6 +62,7 @@ std::shared_ptr<localagent::ModelBackend> make_model_backend(const localagent::C
 }  // namespace
 
 int main(int argc, char** argv) {
+  spdlog::set_default_logger(spdlog::stderr_color_mt("localagent"));
   spdlog::set_level(spdlog::level::info);
   const auto cfg = localagent::load_config(argc, argv);
   localagent::CommandRouter router;
