@@ -96,6 +96,7 @@ endif()
 
 add_executable(flatwhite src/main.cpp)
 target_link_libraries(flatwhite PRIVATE flatwhite::core)
+set_target_properties(flatwhite PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 if(FLATWHITE_BUILD_TESTS)
   find_package(Catch2 3 QUIET)
