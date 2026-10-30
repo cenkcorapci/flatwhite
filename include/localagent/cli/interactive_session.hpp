@@ -1,6 +1,7 @@
 #pragma once
 
 #include "localagent/app/session_controller.hpp"
+#include "localagent/cli/resource_monitor.hpp"
 #include "localagent/config/config.hpp"
 #include "localagent/model/backend.hpp"
 
@@ -52,6 +53,7 @@ public:
 private:
   void write_status(const std::string& label, const std::string& message);
   void write_failure(const std::string& message);
+  void write_resource_usage();
   void print_sessions();
   void handle_model(const std::string& query);
   [[nodiscard]] int run_prompt(const std::string& prompt);
@@ -66,6 +68,7 @@ private:
   SessionId session_id_;
   std::string active_model_;
   std::vector<std::string> history_;
+  ResourceMonitor resource_monitor_;
 };
 
 }  // namespace localagent

@@ -128,6 +128,13 @@ void InteractiveSession::write_failure(const std::string& message) {
   }
 }
 
+void InteractiveSession::write_resource_usage() {
+  if (!use_color_) {
+    return;
+  }
+  output_ << "\033[2m" << format_resource_usage(resource_monitor_.sample()) << "\033[0m\n";
+}
+
 void InteractiveSession::print_sessions() {
   const auto records = sessions_.list();
   if (records.empty()) {
@@ -209,6 +216,7 @@ int InteractiveSession::run() {
   std::string line;
   while (true) {
     if (use_color_) {
+      write_resource_usage();
       output_ << "\033[32mflatwhite>\033[0m " << std::flush;
     }
     if (!std::getline(input_, line)) {

@@ -74,7 +74,9 @@ Run `flatwhite` with no arguments to start an interactive session. It provides
 `/help`, `/exit`, `/new`, `/history`, `/sessions`, `/resume`, `/clear`, and
 `/model` commands. `/model` lists locally available Ollama models and selects
 an exact or uniquely matching prefix; it does not remove model or provider
-safety behavior. Use `-p` / `--prompt` or a positional prompt for one-shot
+safety behavior. On an interactive terminal, a dim status line refreshes before
+each prompt with process CPU time, peak resident memory, and elapsed time. Use
+`-p` / `--prompt` or a positional prompt for one-shot
 requests. The CLI provides `chat`, `agent`,
 `plan`, `ask`, `debug`, `review`, `data`, and `research` modes. In CI and
 offline checks, set `FLATWHITE_FAKE_MODEL=1` or pass `--fake-model`.

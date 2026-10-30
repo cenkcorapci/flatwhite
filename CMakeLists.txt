@@ -67,6 +67,7 @@ add_library(flatwhite_core
   src/agent/runtime/agent_runtime.cpp
   src/cli/command_router.cpp
   src/cli/interactive_session.cpp
+  src/cli/resource_monitor.cpp
   src/app/session_controller.cpp
 )
 add_library(flatwhite::core ALIAS flatwhite_core)
@@ -135,6 +136,7 @@ if(FLATWHITE_BUILD_TESTS)
     tests/unit/test_agent_runtime.cpp
     tests/unit/test_command_router.cpp
     tests/unit/test_interactive_session.cpp
+    tests/unit/test_resource_monitor.cpp
   )
   target_link_libraries(flatwhite_tests PRIVATE flatwhite::core Catch2::Catch2WithMain)
   include(CTest)
