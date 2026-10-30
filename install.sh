@@ -10,13 +10,10 @@ BUILD_DIR="$SOURCE_DIR/build"
 BIN="$INSTALL_DIR/bin/flatwhite"
 
 configure_fish_path() {
-  case ${SHELL:-} in
-    */fish)
-      if command -v fish >/dev/null 2>&1; then
-        fish -c 'fish_add_path -U -- "$argv[1]"' "$INSTALL_DIR/bin"
-      fi
-      ;;
-  esac
+  if command -v fish >/dev/null 2>&1; then
+    fish -c 'fish_add_path -U -- "$argv[1]"' "$INSTALL_DIR/bin"
+    echo "Added $INSTALL_DIR/bin to Fish's universal PATH." >&2
+  fi
 }
 
 install_dependencies() {
@@ -96,9 +93,6 @@ fi
 )
 echo "flatwhite installed at $BIN (verified with the offline fake backend)." >&2
 configure_fish_path
-case ${SHELL:-} in
-  */fish) echo "Added $INSTALL_DIR/bin to Fish's universal PATH." >&2 ;;
-esac
 echo "Run: $BIN --help" >&2
 
 if [ "${FLATWHITE_RUN:-${LOCALAGENT_RUN:-0}}" = "1" ]; then
