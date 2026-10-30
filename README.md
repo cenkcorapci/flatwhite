@@ -1,5 +1,7 @@
 # Flatwhite
 
+![Flatwhite interactive terminal session](assets/flatwhite-terminal.png)
+
 ## Install
 
 ```bash
