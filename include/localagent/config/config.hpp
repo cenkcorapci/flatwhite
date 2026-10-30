@@ -30,6 +30,8 @@ struct ModelsConfig {
 };
 
 struct PermissionsConfig {
+  // Development tools are unrestricted unless this is explicitly disabled.
+  bool unrestricted{true};
   PolicySetting default_read{PolicySetting::Allow};
   PolicySetting workspace_write{PolicySetting::Allow};
   PolicySetting network{PolicySetting::Ask};
@@ -38,6 +40,11 @@ struct PermissionsConfig {
   PolicySetting credentials{PolicySetting::Deny};
   PolicySetting destructive{PolicySetting::Ask};
   PolicySetting privilege{PolicySetting::Deny};
+};
+
+struct WebSearchConfig {
+  // `{query}` is replaced with a percent-encoded query.
+  std::string endpoint{"https://html.duckduckgo.com/html/?q={query}"};
 };
 
 struct ExecutionConfig {
@@ -50,6 +57,7 @@ struct Config {
   ContextConfig context;
   ModelsConfig models;
   PermissionsConfig permissions;
+  WebSearchConfig web_search;
   ExecutionConfig execution;
 
   std::filesystem::path workspace{"."};

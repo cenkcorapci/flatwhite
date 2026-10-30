@@ -11,22 +11,25 @@ option(LOCALAGENT_ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(LOCALAGENT_ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 
 include(FetchContent)
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG v3.8.0
-)
-FetchContent_Declare(
-  nlohmann_json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG v3.11.3
-)
-FetchContent_Declare(
-  spdlog
-  GIT_REPOSITORY https://github.com/gabime/spdlog.git
-  GIT_TAG v1.15.1
-)
-FetchContent_MakeAvailable(Catch2 nlohmann_json spdlog)
+find_package(nlohmann_json QUIET)
+if(NOT TARGET nlohmann_json::nlohmann_json)
+  FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+  )
+  FetchContent_MakeAvailable(nlohmann_json)
+endif()
+
+find_package(spdlog QUIET)
+if(NOT TARGET spdlog::spdlog)
+  FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.15.1
+  )
+  FetchContent_MakeAvailable(spdlog)
+endif()
 
 find_package(CURL REQUIRED)
 find_package(SQLite3 REQUIRED)
@@ -53,6 +56,7 @@ add_library(localagent_core
   src/tools/filesystem/patch_engine.cpp
   src/tools/shell/shell_tool.cpp
   src/tools/git/git_tools.cpp
+  src/tools/web/web_search_tool.cpp
   src/tools/tool_registry.cpp
   src/context/context_builder.cpp
   src/context/rules_loader.cpp
@@ -92,6 +96,15 @@ add_executable(localagent src/main.cpp)
 target_link_libraries(localagent PRIVATE localagent::core)
 
 if(LOCALAGENT_BUILD_TESTS)
+  find_package(Catch2 3 QUIET)
+  if(NOT TARGET Catch2::Catch2WithMain)
+    FetchContent_Declare(
+      Catch2
+      GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+      GIT_TAG v3.8.0
+    )
+    FetchContent_MakeAvailable(Catch2)
+  endif()
   enable_testing()
   add_executable(localagent_tests
     tests/unit/test_main.cpp
@@ -143,6 +156,20 @@ if(LOCALAGENT_BUILD_TESTS)
         -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/cli_smoke.cmake
     )
   endforeach()
+
+  unset(LOCALAGENT_DOCKER_EXECUTABLE CACHE)
+  find_program(LOCALAGENT_DOCKER_EXECUTABLE NAMES docker NO_CMAKE_FIND_APPBUNDLE)
+  if(LOCALAGENT_DOCKER_EXECUTABLE)
+    add_test(
+      NAME integration_installer_docker
+      COMMAND ${CMAKE_COMMAND}
+        -DLOCALAGENT_DOCKER=docker
+        -DLOCALAGENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -DLOCALAGENT_TEST_DIR=${CMAKE_CURRENT_BINARY_DIR}/integration/installer_docker
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/installer_docker.cmake
+    )
+    set_tests_properties(integration_installer_docker PROPERTIES TIMEOUT 900)
+  endif()
 endif()
 
 install(TARGETS localagent RUNTIME DESTINATION bin)

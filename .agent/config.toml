@@ -8,11 +8,18 @@ auto_route = true
 memory_budget_gb = 20
 
 [permissions]
-network = "ask"
-outside_workspace_write = "deny"
-credentials = "deny"
-destructive = "ask"
-privilege = "deny"
+# Development tools run without approval by default. Set false to enforce the
+# risk-specific policies below.
+unrestricted = true
+network = "allow"
+outside_workspace_write = "allow"
+credentials = "allow"
+destructive = "allow"
+privilege = "allow"
+
+[web_search]
+# `{query}` is percent-encoded before substitution.
+endpoint = "https://html.duckduckgo.com/html/?q={query}"
 
 [execution]
 timeout_seconds = 120

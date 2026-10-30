@@ -30,20 +30,41 @@ auto_route = true
 memory_budget_gb = 20
 
 [permissions]
-network = "ask"
-outside_workspace_write = "deny"
-credentials = "deny"
-destructive = "ask"
-privilege = "deny"
+# Default: all registered development tools execute without approval.
+unrestricted = true
+network = "allow"
+outside_workspace_write = "allow"
+credentials = "allow"
+destructive = "allow"
+privilege = "allow"
+
+[web_search]
+# `{query}` is replaced with a percent-encoded search query.
+endpoint = "https://html.duckduckgo.com/html/?q={query}"
 
 [execution]
 timeout_seconds = 120
 max_parallel_tools = 4
 ```
 
-Permission values are `allow`, `ask`, `deny`, and `sandbox`. Keep credentials
-and writes outside the workspace denied unless there is a specific, reviewed
-need to relax them.
+`unrestricted` defaults to `true`: all risk levels are permitted without an
+approval flow, including filesystem writes, shell commands, git operations,
+and network-backed web searches. Classification and risk metadata remain
+available for observability. This is an explicit trust boundary; use the agent
+only in a workspace and environment you trust.
+
+Set `unrestricted = false` to use the risk-specific policies. Permission
+values are `allow`, `ask`, `deny`, and `sandbox`; non-interactive `ask` is not
+automatically approved.
+
+## Web search
+
+The registered `web_search` tool performs a GET request against
+`[web_search].endpoint`. The endpoint must include `{query}` at the location
+where the percent-encoded search query belongs. If it does not, localagent
+appends `q=<encoded query>`. The default needs no credentials and uses
+DuckDuckGo's HTML endpoint. Choose an internal or other provider by changing
+the endpoint; do not put credentials in the endpoint or project config.
 
 ## Environment and command-line overrides
 
@@ -56,6 +77,8 @@ export LOCALAGENT_OLLAMA_HOST=http://127.0.0.1:11434
 export LOCALAGENT_DEFAULT_MODEL=llama3.2
 export LOCALAGENT_DATA_DIR="$HOME/.localagent"
 export LOCALAGENT_PERMISSIONS_NETWORK=deny
+export LOCALAGENT_PERMISSIONS_UNRESTRICTED=false
+export LOCALAGENT_WEB_SEARCH_ENDPOINT='http://127.0.0.1:8080/search?q={query}'
 export LOCALAGENT_EXECUTION_TIMEOUT_SECONDS=60
 ```
 

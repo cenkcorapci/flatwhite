@@ -40,6 +40,7 @@ struct RunRequest {
   Budget budget{};
   CancellationToken cancellation;
   ModelId model{ModelId{"fast-code"}};
+  std::string web_search_endpoint;
 };
 
 class AgentRuntime {

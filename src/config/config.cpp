@@ -178,6 +178,11 @@ void apply_toml(Config& config, const TomlDocument& document) {
     config.permissions.default_read =
         parse_policy_or(config.permissions.default_read, unquote(*value));
   }
+  if (auto value = lookup_value(document, "permissions", "unrestricted")) {
+    if (auto boolean = parse_bool(unquote(*value))) {
+      config.permissions.unrestricted = *boolean;
+    }
+  }
   if (auto value = lookup_value(document, "permissions", "workspace_write")) {
     config.permissions.workspace_write =
         parse_policy_or(config.permissions.workspace_write, unquote(*value));
@@ -205,6 +210,10 @@ void apply_toml(Config& config, const TomlDocument& document) {
   if (auto value = lookup_value(document, "permissions", "privilege")) {
     config.permissions.privilege =
         parse_policy_or(config.permissions.privilege, unquote(*value));
+  }
+
+  if (auto value = lookup_value(document, "web_search", "endpoint")) {
+    config.web_search.endpoint = unquote(*value);
   }
 
   if (auto value = lookup_value(document, "execution", "timeout_seconds")) {
@@ -280,6 +289,12 @@ void apply_env_override(Config& config, std::string_view env_name, std::string_v
     config.permissions.default_read = parse_policy_or(config.permissions.default_read, value);
     return;
   }
+  if (key == "permissions_unrestricted") {
+    if (auto boolean = parse_bool(value)) {
+      config.permissions.unrestricted = *boolean;
+    }
+    return;
+  }
   if (key == "permissions_workspace_write") {
     config.permissions.workspace_write =
         parse_policy_or(config.permissions.workspace_write, value);
@@ -309,6 +324,10 @@ void apply_env_override(Config& config, std::string_view env_name, std::string_v
   }
   if (key == "permissions_privilege") {
     config.permissions.privilege = parse_policy_or(config.permissions.privilege, value);
+    return;
+  }
+  if (key == "web_search_endpoint") {
+    config.web_search.endpoint = std::string{value};
     return;
   }
   if (key == "execution_timeout_seconds") {
@@ -434,6 +453,9 @@ void merge(Config& base, const Config& overlay) {
   }
 
   base.permissions = overlay.permissions;
+  if (!overlay.web_search.endpoint.empty()) {
+    base.web_search.endpoint = overlay.web_search.endpoint;
+  }
   base.execution = overlay.execution;
 
   if (!overlay.workspace.empty()) {

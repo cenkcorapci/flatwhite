@@ -5,6 +5,7 @@
 #include "localagent/tools/filesystem/file_tools.hpp"
 #include "localagent/tools/git/git_tools.hpp"
 #include "localagent/tools/shell/shell_tool.hpp"
+#include "localagent/tools/web/web_search_tool.hpp"
 
 namespace localagent {
 
@@ -13,7 +14,7 @@ void ToolRegistry::register_tool(std::unique_ptr<Tool> tool) {
   tools_[name] = std::move(tool);
 }
 
-void ToolRegistry::register_defaults(const ToolContext& /*ctx*/) {
+void ToolRegistry::register_defaults(const ToolContext& ctx) {
   for (auto& tool : make_file_tools()) {
     register_tool(std::move(tool));
   }
@@ -21,6 +22,7 @@ void ToolRegistry::register_defaults(const ToolContext& /*ctx*/) {
   for (auto& tool : make_git_tools()) {
     register_tool(std::move(tool));
   }
+  register_tool(make_web_search_tool(ctx.web_search_endpoint));
 }
 
 std::optional<ToolResult> ToolRegistry::dispatch(const ToolRequest& request,

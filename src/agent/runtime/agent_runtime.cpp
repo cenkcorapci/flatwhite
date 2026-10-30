@@ -70,7 +70,8 @@ AgentRun AgentRuntime::run(const RunRequest& request) {
   StateMachine sm(AgentState::Initializing);
   run.state = sm.state();
 
-  ToolContext tool_ctx{request.workspace_root, &permissions_, request.cancellation};
+  ToolContext tool_ctx{request.workspace_root, &permissions_, request.cancellation,
+                       request.web_search_endpoint};
   tools_.register_defaults(tool_ctx);
 
   log_event(run.id, "run_started",

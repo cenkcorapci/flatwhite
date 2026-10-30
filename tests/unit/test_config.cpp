@@ -23,7 +23,9 @@ TEST_CASE("default_config has expected baseline", "[config]") {
   REQUIRE(config.agent.default_mode == "agent");
   REQUIRE(config.agent.max_turns == 40);
   REQUIRE(config.models.backend == "ollama");
+  REQUIRE(config.permissions.unrestricted);
   REQUIRE(config.permissions.outside_workspace_write == localagent::PolicySetting::Deny);
+  REQUIRE(config.web_search.endpoint == "https://html.duckduckgo.com/html/?q={query}");
   REQUIRE(config.execution.timeout_seconds == 120);
 }
 
@@ -42,7 +44,11 @@ default_mode = "plan"
 max_turns = 25
 
 [permissions]
+unrestricted = false
 network = "deny"
+
+[web_search]
+endpoint = "http://127.0.0.1:8080/search?query={query}"
 
 [execution]
 timeout_seconds = 300
@@ -56,6 +62,8 @@ timeout_seconds = 300
   REQUIRE(config.agent.default_mode == "plan");
   REQUIRE(config.agent.max_turns == 25);
   REQUIRE(config.permissions.network == localagent::PolicySetting::Deny);
+  REQUIRE_FALSE(config.permissions.unrestricted);
+  REQUIRE(config.web_search.endpoint == "http://127.0.0.1:8080/search?query={query}");
   REQUIRE(config.execution.timeout_seconds == 300);
   REQUIRE(config.models.backend == "ollama");
 
@@ -65,7 +73,11 @@ timeout_seconds = 300
 TEST_CASE("load_config applies LOCALAGENT env overrides", "[config]") {
 #if !defined(_WIN32)
   const auto previous = std::getenv("LOCALAGENT_AGENT_DEFAULT_MODE");
+  const auto previous_unrestricted = std::getenv("LOCALAGENT_PERMISSIONS_UNRESTRICTED");
+  const auto previous_endpoint = std::getenv("LOCALAGENT_WEB_SEARCH_ENDPOINT");
   setenv("LOCALAGENT_AGENT_DEFAULT_MODE", "ask", 1);
+  setenv("LOCALAGENT_PERMISSIONS_UNRESTRICTED", "false", 1);
+  setenv("LOCALAGENT_WEB_SEARCH_ENDPOINT", "http://127.0.0.1/search?q={query}", 1);
 
   localagent::ConfigPaths paths;
   paths.user_config = std::filesystem::path{"/nonexistent/localagent-user-config.toml"};
@@ -73,11 +85,23 @@ TEST_CASE("load_config applies LOCALAGENT env overrides", "[config]") {
 
   const auto config = localagent::load_config(paths);
   REQUIRE(config.agent.default_mode == "ask");
+  REQUIRE_FALSE(config.permissions.unrestricted);
+  REQUIRE(config.web_search.endpoint == "http://127.0.0.1/search?q={query}");
 
   if (previous) {
     setenv("LOCALAGENT_AGENT_DEFAULT_MODE", previous, 1);
   } else {
     unsetenv("LOCALAGENT_AGENT_DEFAULT_MODE");
+  }
+  if (previous_unrestricted) {
+    setenv("LOCALAGENT_PERMISSIONS_UNRESTRICTED", previous_unrestricted, 1);
+  } else {
+    unsetenv("LOCALAGENT_PERMISSIONS_UNRESTRICTED");
+  }
+  if (previous_endpoint) {
+    setenv("LOCALAGENT_WEB_SEARCH_ENDPOINT", previous_endpoint, 1);
+  } else {
+    unsetenv("LOCALAGENT_WEB_SEARCH_ENDPOINT");
   }
 #endif
 }

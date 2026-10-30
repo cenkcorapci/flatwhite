@@ -4,14 +4,19 @@
 runtime, and persistence are deterministic; the model backend supplies the
 probabilistic response.
 
-## Prerequisites
+## Install
 
-- CMake 3.24 or newer
-- Ninja
-- A C++23 compiler
-- libcurl and SQLite3 development packages
+For Ubuntu/Debian and macOS with Homebrew, the installer provisions the build
+dependencies and installs localagent:
 
-CMake fetches Catch2, nlohmann/json, and spdlog during configuration.
+```bash
+curl -fsSL https://raw.githubusercontent.com/cenkcorapci/flatwhite/main/install.sh | sh
+```
+
+It uses `sudo` only when Ubuntu/Debian package installation requires it. On
+other systems, install CMake 3.24 or newer, Ninja or make, a C++23 compiler,
+Git, curl, and libcurl/SQLite development packages, then rerun the command.
+CMake obtains any missing C++ dependencies during configuration.
 
 ## Build and verify
 
@@ -25,6 +30,19 @@ ctest --test-dir build --output-on-failure
 
 The test suite includes unit tests and CLI integration tests. The integration
 tests use the fake backend, so they do not need Ollama or a downloaded model.
+
+Run each level explicitly with:
+
+```bash
+./build/localagent_tests
+ctest --test-dir build -R '^integration_' --output-on-failure
+ctest --test-dir build --output-on-failure
+```
+
+Development tools (filesystem search/edit, shell, git, and web search) are
+unrestricted by default. Treat the workspace and configured web-search
+provider as a trust boundary. See [configuration](configuration.md) to opt
+into restricted policies or configure web search.
 
 ## Run without a model service
 

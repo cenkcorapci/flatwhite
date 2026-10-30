@@ -117,6 +117,7 @@ int main(int argc, char** argv) {
   req.workspace_root = cfg.workspace_root;
   req.verify = cmd.mode == localagent::AgentMode::Agent;
   req.model = localagent::ModelId{cfg.default_model};
+  req.web_search_endpoint = cfg.web_search.endpoint;
 
   const auto run = runtime.run(req);
 

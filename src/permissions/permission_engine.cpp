@@ -90,7 +90,7 @@ PermissionEngine::PermissionEngine(bool allow_all)
 PermissionEngine::PermissionEngine(std::filesystem::path workspace, PermissionsConfig config)
     : workspace_(normalize_path(std::move(workspace))),
       config_(std::move(config)),
-      allow_all_(false) {}
+      allow_all_(config_.unrestricted) {}
 
 Policy PermissionEngine::check(RiskLevel risk, const std::filesystem::path& target) const {
   if (allow_all_) {
@@ -173,14 +173,6 @@ bool PermissionEngine::is_credential_path(const std::filesystem::path& path) con
 
 PermissionDecision PermissionEngine::evaluate(RiskLevel risk,
                                               const std::filesystem::path& target) const {
-  if (allow_all_) {
-    return PermissionDecision{
-        .policy = Policy::Allow,
-        .risk = risk,
-        .reason = "allow_all",
-    };
-  }
-
   PermissionDecision decision{
       .policy = policy_for(risk),
       .risk = risk,
@@ -192,27 +184,24 @@ PermissionDecision PermissionEngine::evaluate(RiskLevel risk,
       decision.risk = RiskLevel::Credential;
       decision.policy = Policy::Deny;
       decision.reason = "deny write to ~/.ssh/**";
-      return decision;
-    }
-
-    if (is_credential_path(target)) {
+    } else if (is_credential_path(target)) {
       decision.risk = RiskLevel::Credential;
       decision.policy = policy_for(RiskLevel::Credential);
       decision.reason = "credential path";
-      return decision;
-    }
-
-    const bool inside = is_inside_workspace(target);
-    if (!inside && (risk == RiskLevel::WorkspaceWrite || risk == RiskLevel::Read)) {
+    } else if (!is_inside_workspace(target) &&
+               (risk == RiskLevel::WorkspaceWrite || risk == RiskLevel::Read)) {
       decision.risk = RiskLevel::OutsideWorkspaceWrite;
       decision.policy = policy_for(RiskLevel::OutsideWorkspaceWrite);
       decision.reason = "outside workspace";
-      return decision;
     }
   }
 
   if (decision.reason.empty()) {
     decision.reason = to_string(decision.risk);
+  }
+  if (allow_all_) {
+    decision.policy = Policy::Allow;
+    decision.reason = "unrestricted";
   }
   return decision;
 }

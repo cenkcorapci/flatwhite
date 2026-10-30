@@ -36,6 +36,7 @@ struct ToolContext {
   std::filesystem::path workspace_root;
   PermissionEngine* permissions{nullptr};
   CancellationToken cancellation;
+  std::string web_search_endpoint;
 };
 
 class Tool {

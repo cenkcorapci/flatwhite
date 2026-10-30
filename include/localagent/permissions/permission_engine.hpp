@@ -50,7 +50,7 @@ private:
 
   std::filesystem::path workspace_;
   PermissionsConfig config_;
-  bool allow_all_{false};
+  bool allow_all_{true};
   bool interactive_{false};
 };
 
