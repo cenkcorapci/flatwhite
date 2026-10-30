@@ -11,7 +11,8 @@ needed) or with Homebrew on macOS, then clones, builds, installs to
 `~/.flatwhite`, and runs an offline fake-backend verification (no model
 download). On unsupported package managers, it prints the required dependencies
 instead of changing the system. It refuses to overwrite an existing non-git
-checkout.
+checkout. When started from Fish, it also adds `~/.flatwhite/bin` to Fish's
+universal `PATH`.
 Set `FLATWHITE_INSTALL_DIR` to choose another prefix; set `FLATWHITE_RUN=1`
 to run `--help` after installation.
 

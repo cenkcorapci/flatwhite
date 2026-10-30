@@ -17,6 +17,8 @@ It uses `sudo` only when Ubuntu/Debian package installation requires it. On
 other systems, install CMake 3.24 or newer, Ninja or make, a C++23 compiler,
 Git, curl, and libcurl/SQLite development packages, then rerun the command.
 CMake obtains any missing C++ dependencies during configuration.
+When the installer is run from Fish, it adds the install directory's `bin`
+subdirectory to Fish's universal `PATH`.
 
 ## Build and verify
 
