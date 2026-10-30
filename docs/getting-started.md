@@ -1,13 +1,13 @@
 # Getting started
 
-`localagent` is a local-first coding-agent runtime. Its permission engine, tool
+`flatwhite` is a local-first coding-agent runtime. Its permission engine, tool
 runtime, and persistence are deterministic; the model backend supplies the
 probabilistic response.
 
 ## Install
 
 For Ubuntu/Debian and macOS with Homebrew, the installer provisions the build
-dependencies and installs localagent:
+dependencies and installs Flatwhite:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/cenkcorapci/flatwhite/main/install.sh | sh
@@ -34,7 +34,7 @@ tests use the fake backend, so they do not need Ollama or a downloaded model.
 Run each level explicitly with:
 
 ```bash
-./build/localagent_tests
+./build/flatwhite_tests
 ctest --test-dir build -R '^integration_' --output-on-failure
 ctest --test-dir build --output-on-failure
 ```
@@ -50,7 +50,7 @@ Use the fake model to validate the CLI, JSON format, session persistence, or a
 local integration without network access:
 
 ```bash
-LOCALAGENT_FAKE_MODEL=1 ./build/localagent \
+FLATWHITE_FAKE_MODEL=1 ./build/flatwhite \
   -p "summarize the current task" \
   --output-format json
 ```
@@ -60,24 +60,28 @@ and CI, not for useful model-generated answers.
 
 ## Run with Ollama
 
-By default, localagent connects to Ollama at `http://127.0.0.1:11434`. Start an
+By default, Flatwhite connects to Ollama at `http://127.0.0.1:11434`. Start an
 Ollama service with a model available locally, then run a prompt:
 
 ```bash
-./build/localagent chat -p "summarize this repository"
-./build/localagent agent -p "fix the failing test"
+./build/flatwhite
+./build/flatwhite chat -p "summarize this repository"
+./build/flatwhite agent -p "fix the failing test"
 ```
 
 If Ollama is unreachable, the executable falls back to an empty fake backend;
 the command remains local but cannot produce a meaningful response. Set
-`LOCALAGENT_OLLAMA_HOST` to use a different local endpoint.
+`FLATWHITE_OLLAMA_HOST` to use a different local endpoint. In interactive mode,
+`/model` lists models installed in local Ollama and selects an exact or uniquely
+matching prefix. It only chooses the model for future requests; it does not
+bypass provider or safety behavior.
 
 ## Inspect the CLI
 
 ```bash
-./build/localagent --help
-./build/localagent --version
-./build/localagent models list
+./build/flatwhite --help
+./build/flatwhite --version
+./build/flatwhite models list
 ```
 
 Pass a prompt either positionally or with `-p` / `--prompt`. For automation,

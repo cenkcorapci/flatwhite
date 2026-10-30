@@ -11,6 +11,7 @@ namespace localagent {
 enum class OutputFormat { Text, Json };
 
 enum class CommandKind {
+  Interactive,
   Help,
   Version,
   Chat,

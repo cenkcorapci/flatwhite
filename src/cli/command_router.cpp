@@ -31,7 +31,7 @@ std::optional<CommandKind> kind_from_mode(AgentMode mode) {
 Command CommandRouter::parse(int argc, char** argv) const {
   Command cmd;
   if (argc <= 1) {
-    cmd.kind = CommandKind::Help;
+    cmd.kind = CommandKind::Interactive;
     return cmd;
   }
 
@@ -95,8 +95,10 @@ Command CommandRouter::parse(int argc, char** argv) const {
       cmd.kind = CommandKind::ModelsList;
       ++i;
     }
-  } else if (first == "localagent") {
+  } else if (first == "localagent" || first == "flatwhite") {
     ++i;
+  } else if (first.starts_with("-")) {
+    cmd.kind = CommandKind::Interactive;
   } else {
     cmd.kind = CommandKind::Chat;
   }
@@ -117,6 +119,10 @@ Command CommandRouter::parse(int argc, char** argv) const {
       }
     } else if (arg == "--continue") {
       cmd.continue_session = true;
+    } else if (arg == "--fake-model") {
+      continue;
+    } else if ((arg == "--workspace" || arg == "--data-dir") && i + 1 < argc) {
+      ++i;
     } else if (arg == "--help" || arg == "-h") {
       cmd.kind = CommandKind::Help;
       return cmd;
@@ -140,13 +146,14 @@ Command CommandRouter::parse(int argc, char** argv) const {
 }
 
 std::string CommandRouter::help_text() {
-  return R"(localagent - local coding agent runtime
+  return R"(flatwhite - local coding agent runtime
 
 Usage:
-  localagent [chat|agent|plan|ask|debug|review|data|research] [options] [prompt]
-  localagent -p "prompt" --output-format text|json
-  localagent sessions list|resume <id>
-  localagent models list
+  flatwhite                         Start an interactive session
+  flatwhite [chat|agent|plan|ask|debug|review|data|research] [options] [prompt]
+  flatwhite -p "prompt" --output-format text|json
+  flatwhite sessions list|resume <id>
+  flatwhite models list
 
 Options:
   -p, --prompt           Non-interactive prompt
@@ -157,6 +164,6 @@ Options:
 )";
 }
 
-std::string CommandRouter::version_text() { return "localagent 0.1.0"; }
+std::string CommandRouter::version_text() { return "flatwhite 0.1.0"; }
 
 }  // namespace localagent

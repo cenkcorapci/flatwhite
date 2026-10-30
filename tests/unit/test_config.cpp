@@ -70,14 +70,14 @@ timeout_seconds = 300
   std::filesystem::remove(project);
 }
 
-TEST_CASE("load_config applies LOCALAGENT env overrides", "[config]") {
+TEST_CASE("load_config applies FLATWHITE env overrides", "[config]") {
 #if !defined(_WIN32)
-  const auto previous = std::getenv("LOCALAGENT_AGENT_DEFAULT_MODE");
-  const auto previous_unrestricted = std::getenv("LOCALAGENT_PERMISSIONS_UNRESTRICTED");
-  const auto previous_endpoint = std::getenv("LOCALAGENT_WEB_SEARCH_ENDPOINT");
-  setenv("LOCALAGENT_AGENT_DEFAULT_MODE", "ask", 1);
-  setenv("LOCALAGENT_PERMISSIONS_UNRESTRICTED", "false", 1);
-  setenv("LOCALAGENT_WEB_SEARCH_ENDPOINT", "http://127.0.0.1/search?q={query}", 1);
+  const auto previous = std::getenv("FLATWHITE_AGENT_DEFAULT_MODE");
+  const auto previous_unrestricted = std::getenv("FLATWHITE_PERMISSIONS_UNRESTRICTED");
+  const auto previous_endpoint = std::getenv("FLATWHITE_WEB_SEARCH_ENDPOINT");
+  setenv("FLATWHITE_AGENT_DEFAULT_MODE", "ask", 1);
+  setenv("FLATWHITE_PERMISSIONS_UNRESTRICTED", "false", 1);
+  setenv("FLATWHITE_WEB_SEARCH_ENDPOINT", "http://127.0.0.1/search?q={query}", 1);
 
   localagent::ConfigPaths paths;
   paths.user_config = std::filesystem::path{"/nonexistent/localagent-user-config.toml"};
@@ -89,19 +89,19 @@ TEST_CASE("load_config applies LOCALAGENT env overrides", "[config]") {
   REQUIRE(config.web_search.endpoint == "http://127.0.0.1/search?q={query}");
 
   if (previous) {
-    setenv("LOCALAGENT_AGENT_DEFAULT_MODE", previous, 1);
+    setenv("FLATWHITE_AGENT_DEFAULT_MODE", previous, 1);
   } else {
-    unsetenv("LOCALAGENT_AGENT_DEFAULT_MODE");
+    unsetenv("FLATWHITE_AGENT_DEFAULT_MODE");
   }
   if (previous_unrestricted) {
-    setenv("LOCALAGENT_PERMISSIONS_UNRESTRICTED", previous_unrestricted, 1);
+    setenv("FLATWHITE_PERMISSIONS_UNRESTRICTED", previous_unrestricted, 1);
   } else {
-    unsetenv("LOCALAGENT_PERMISSIONS_UNRESTRICTED");
+    unsetenv("FLATWHITE_PERMISSIONS_UNRESTRICTED");
   }
   if (previous_endpoint) {
-    setenv("LOCALAGENT_WEB_SEARCH_ENDPOINT", previous_endpoint, 1);
+    setenv("FLATWHITE_WEB_SEARCH_ENDPOINT", previous_endpoint, 1);
   } else {
-    unsetenv("LOCALAGENT_WEB_SEARCH_ENDPOINT");
+    unsetenv("FLATWHITE_WEB_SEARCH_ENDPOINT");
   }
 #endif
 }

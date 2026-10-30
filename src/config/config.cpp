@@ -241,8 +241,14 @@ Config load_toml_file(const std::filesystem::path& path) {
 }
 
 void apply_env_override(Config& config, std::string_view env_name, std::string_view value) {
-  constexpr std::string_view prefix = "LOCALAGENT_";
-  if (!env_name.starts_with(prefix)) {
+  constexpr std::string_view flatwhite_prefix = "FLATWHITE_";
+  constexpr std::string_view legacy_prefix = "LOCALAGENT_";
+  std::string_view prefix;
+  if (env_name.starts_with(flatwhite_prefix)) {
+    prefix = flatwhite_prefix;
+  } else if (env_name.starts_with(legacy_prefix)) {
+    prefix = legacy_prefix;
+  } else {
     return;
   }
   const auto key = to_lower(std::string{env_name.substr(prefix.size())});
@@ -389,9 +395,9 @@ void apply_env_overrides(Config& config) {
 
 std::filesystem::path default_user_config_path() {
   if (const char* home = std::getenv("HOME")) {
-    return std::filesystem::path{home} / ".config" / "localagent" / "config.toml";
+    return std::filesystem::path{home} / ".config" / "flatwhite" / "config.toml";
   }
-  return std::filesystem::path{".config/localagent/config.toml"};
+  return std::filesystem::path{".config/flatwhite/config.toml"};
 }
 
 }  // namespace
@@ -503,9 +509,9 @@ Config load_config(const ConfigPaths& paths) {
 
 std::filesystem::path default_data_dir() {
   if (const char* home = std::getenv("HOME")) {
-    return std::filesystem::path{home} / ".localagent";
+    return std::filesystem::path{home} / ".flatwhite";
   }
-  return std::filesystem::path{".localagent"};
+  return std::filesystem::path{".flatwhite"};
 }
 
 Config load_config(int argc, char** argv) {

@@ -3,9 +3,9 @@
 Configuration is assembled in this order:
 
 1. Built-in defaults
-2. `~/.config/localagent/config.toml`
+2. `~/.config/flatwhite/config.toml`
 3. `.agent/config.toml` in the current working directory
-4. `LOCALAGENT_*` environment variables
+4. `FLATWHITE_*` environment variables
 5. Supported command-line flags
 
 The project configuration is useful for repository-wide defaults. Environment
@@ -61,7 +61,7 @@ automatically approved.
 
 The registered `web_search` tool performs a GET request against
 `[web_search].endpoint`. The endpoint must include `{query}` at the location
-where the percent-encoded search query belongs. If it does not, localagent
+where the percent-encoded search query belongs. If it does not, Flatwhite
 appends `q=<encoded query>`. The default needs no credentials and uses
 DuckDuckGo's HTML endpoint. Choose an internal or other provider by changing
 the endpoint; do not put credentials in the endpoint or project config.
@@ -72,21 +72,21 @@ The configuration loader recognizes environment variables matching supported
 settings, including:
 
 ```bash
-export LOCALAGENT_FAKE_MODEL=1
-export LOCALAGENT_OLLAMA_HOST=http://127.0.0.1:11434
-export LOCALAGENT_DEFAULT_MODEL=llama3.2
-export LOCALAGENT_DATA_DIR="$HOME/.localagent"
-export LOCALAGENT_PERMISSIONS_NETWORK=deny
-export LOCALAGENT_PERMISSIONS_UNRESTRICTED=false
-export LOCALAGENT_WEB_SEARCH_ENDPOINT='http://127.0.0.1:8080/search?q={query}'
-export LOCALAGENT_EXECUTION_TIMEOUT_SECONDS=60
+export FLATWHITE_FAKE_MODEL=1
+export FLATWHITE_OLLAMA_HOST=http://127.0.0.1:11434
+export FLATWHITE_DEFAULT_MODEL=llama3.2
+export FLATWHITE_DATA_DIR="$HOME/.flatwhite"
+export FLATWHITE_PERMISSIONS_NETWORK=deny
+export FLATWHITE_PERMISSIONS_UNRESTRICTED=false
+export FLATWHITE_WEB_SEARCH_ENDPOINT='http://127.0.0.1:8080/search?q={query}'
+export FLATWHITE_EXECUTION_TIMEOUT_SECONDS=60
 ```
 
 The executable also supports:
 
 ```bash
-./build/localagent --fake-model --workspace /path/to/project \
-  --data-dir /tmp/localagent-data -p "review this change"
+./build/flatwhite --fake-model --workspace /path/to/project \
+  --data-dir ./flatwhite-data -p "review this change"
 ```
 
 `--fake-model`, `--workspace`, and `--data-dir` override the loaded
@@ -94,21 +94,21 @@ configuration for that invocation.
 
 ## Sessions and event data
 
-By default, localagent stores its state under `~/.localagent`. Change the
-location with `LOCALAGENT_DATA_DIR` or `--data-dir`, particularly in CI where a
+By default, Flatwhite stores its state under `~/.flatwhite`. Change the
+location with `FLATWHITE_DATA_DIR` or `--data-dir`, particularly in CI where a
 temporary directory keeps runs isolated.
 
 Each prompt creates a session. List stored sessions with:
 
 ```bash
-./build/localagent sessions list
+./build/flatwhite sessions list
 ```
 
 Resume the most recent session with `--continue`, or resume a specific session:
 
 ```bash
-./build/localagent chat --continue -p "continue the investigation"
-./build/localagent sessions resume <session-id> -p "continue the investigation"
+./build/flatwhite chat --continue -p "continue the investigation"
+./build/flatwhite sessions resume <session-id> -p "continue the investigation"
 ```
 
 The data directory contains the SQLite session store and JSONL event log. Treat

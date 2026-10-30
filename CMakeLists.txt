@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.24)
-project(localagent VERSION 0.1.0 LANGUAGES CXX)
+project(flatwhite VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(LOCALAGENT_BUILD_TESTS "Build unit tests" ON)
-option(LOCALAGENT_ENABLE_ASAN "Enable AddressSanitizer" OFF)
-option(LOCALAGENT_ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
+option(FLATWHITE_BUILD_TESTS "Build unit tests" ON)
+option(FLATWHITE_ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(FLATWHITE_ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 
 include(FetchContent)
 find_package(nlohmann_json QUIET)
@@ -35,7 +35,7 @@ find_package(CURL REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(Threads REQUIRED)
 
-add_library(localagent_core
+add_library(flatwhite_core
   src/common/strong_id.cpp
   src/common/json_util.cpp
   src/common/error.cpp
@@ -66,15 +66,16 @@ add_library(localagent_core
   src/agent/state_machine/state_machine.cpp
   src/agent/runtime/agent_runtime.cpp
   src/cli/command_router.cpp
+  src/cli/interactive_session.cpp
   src/app/session_controller.cpp
 )
-add_library(localagent::core ALIAS localagent_core)
+add_library(flatwhite::core ALIAS flatwhite_core)
 
-target_include_directories(localagent_core
+target_include_directories(flatwhite_core
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-target_link_libraries(localagent_core
+target_link_libraries(flatwhite_core
   PUBLIC
     nlohmann_json::nlohmann_json
     spdlog::spdlog
@@ -83,19 +84,19 @@ target_link_libraries(localagent_core
     Threads::Threads
 )
 
-if(LOCALAGENT_ENABLE_ASAN)
-  target_compile_options(localagent_core PUBLIC -fsanitize=address -fno-omit-frame-pointer)
-  target_link_options(localagent_core PUBLIC -fsanitize=address)
+if(FLATWHITE_ENABLE_ASAN)
+  target_compile_options(flatwhite_core PUBLIC -fsanitize=address -fno-omit-frame-pointer)
+  target_link_options(flatwhite_core PUBLIC -fsanitize=address)
 endif()
-if(LOCALAGENT_ENABLE_UBSAN)
-  target_compile_options(localagent_core PUBLIC -fsanitize=undefined -fno-omit-frame-pointer)
-  target_link_options(localagent_core PUBLIC -fsanitize=undefined)
+if(FLATWHITE_ENABLE_UBSAN)
+  target_compile_options(flatwhite_core PUBLIC -fsanitize=undefined -fno-omit-frame-pointer)
+  target_link_options(flatwhite_core PUBLIC -fsanitize=undefined)
 endif()
 
-add_executable(localagent src/main.cpp)
-target_link_libraries(localagent PRIVATE localagent::core)
+add_executable(flatwhite src/main.cpp)
+target_link_libraries(flatwhite PRIVATE flatwhite::core)
 
-if(LOCALAGENT_BUILD_TESTS)
+if(FLATWHITE_BUILD_TESTS)
   find_package(Catch2 3 QUIET)
   if(NOT TARGET Catch2::Catch2WithMain)
     FetchContent_Declare(
@@ -106,7 +107,7 @@ if(LOCALAGENT_BUILD_TESTS)
     FetchContent_MakeAvailable(Catch2)
   endif()
   enable_testing()
-  add_executable(localagent_tests
+  add_executable(flatwhite_tests
     tests/unit/test_main.cpp
     tests/unit/test_strong_id.cpp
     tests/unit/test_config.cpp
@@ -133,43 +134,44 @@ if(LOCALAGENT_BUILD_TESTS)
     tests/unit/test_error.cpp
     tests/unit/test_agent_runtime.cpp
     tests/unit/test_command_router.cpp
+    tests/unit/test_interactive_session.cpp
   )
-  target_link_libraries(localagent_tests PRIVATE localagent::core Catch2::Catch2WithMain)
+  target_link_libraries(flatwhite_tests PRIVATE flatwhite::core Catch2::Catch2WithMain)
   include(CTest)
   include(Catch)
-  catch_discover_tests(localagent_tests)
+  catch_discover_tests(flatwhite_tests)
 
   add_test(
     NAME integration_cli_help
-    COMMAND localagent --help
+    COMMAND flatwhite --help
   )
   set_tests_properties(integration_cli_help PROPERTIES PASS_REGULAR_EXPRESSION "Usage:")
 
-  foreach(integration_case IN ITEMS fake_json sessions)
+  foreach(integration_case IN ITEMS fake_json sessions interactive)
     add_test(
       NAME integration_cli_${integration_case}
       COMMAND ${CMAKE_COMMAND}
-        -DLOCALAGENT_BINARY=$<TARGET_FILE:localagent>
-        -DLOCALAGENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-        -DLOCALAGENT_TEST_DIR=${CMAKE_CURRENT_BINARY_DIR}/integration/${integration_case}
-        -DLOCALAGENT_CASE=${integration_case}
+        -DFLATWHITE_BINARY=$<TARGET_FILE:flatwhite>
+        -DFLATWHITE_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -DFLATWHITE_TEST_DIR=${CMAKE_CURRENT_BINARY_DIR}/integration/${integration_case}
+        -DFLATWHITE_CASE=${integration_case}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/cli_smoke.cmake
     )
   endforeach()
 
-  unset(LOCALAGENT_DOCKER_EXECUTABLE CACHE)
-  find_program(LOCALAGENT_DOCKER_EXECUTABLE NAMES docker NO_CMAKE_FIND_APPBUNDLE)
-  if(LOCALAGENT_DOCKER_EXECUTABLE)
+  unset(FLATWHITE_DOCKER_EXECUTABLE CACHE)
+  find_program(FLATWHITE_DOCKER_EXECUTABLE NAMES docker NO_CMAKE_FIND_APPBUNDLE)
+  if(FLATWHITE_DOCKER_EXECUTABLE)
     add_test(
       NAME integration_installer_docker
       COMMAND ${CMAKE_COMMAND}
-        -DLOCALAGENT_DOCKER=docker
-        -DLOCALAGENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-        -DLOCALAGENT_TEST_DIR=${CMAKE_CURRENT_BINARY_DIR}/integration/installer_docker
+        -DFLATWHITE_DOCKER=docker
+        -DFLATWHITE_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -DFLATWHITE_TEST_DIR=${CMAKE_CURRENT_BINARY_DIR}/integration/installer_docker
         -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration/installer_docker.cmake
     )
     set_tests_properties(integration_installer_docker PROPERTIES TIMEOUT 900)
   endif()
 endif()
 
-install(TARGETS localagent RUNTIME DESTINATION bin)
+install(TARGETS flatwhite RUNTIME DESTINATION bin)

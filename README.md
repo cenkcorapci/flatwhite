@@ -1,4 +1,4 @@
-# localagent
+# Flatwhite
 
 ## Install
 
@@ -8,11 +8,11 @@ curl -fsSL https://raw.githubusercontent.com/cenkcorapci/flatwhite/main/install.
 
 The installer installs the required packages on Ubuntu/Debian (with `sudo` when
 needed) or with Homebrew on macOS, then clones, builds, installs to
-`~/.localagent`, and runs an offline fake-backend verification (no model
+`~/.flatwhite`, and runs an offline fake-backend verification (no model
 download). On unsupported package managers, it prints the required dependencies
 instead of changing the system. It refuses to overwrite an existing non-git
 checkout.
-Set `LOCALAGENT_INSTALL_DIR` to choose another prefix; set `LOCALAGENT_RUN=1`
+Set `FLATWHITE_INSTALL_DIR` to choose another prefix; set `FLATWHITE_RUN=1`
 to run `--help` after installation.
 
 Local-first C++23 AI agent CLI. The LLM is a probabilistic component inside a deterministic execution harness (permissions, budgets, tools, verification, persistence).
@@ -43,40 +43,46 @@ Run the offline smoke path first; it uses the deterministic fake backend and
 requires neither Ollama nor a downloaded model:
 
 ```bash
-LOCALAGENT_FAKE_MODEL=1 ./build/localagent -p "hello" --output-format text
+FLATWHITE_FAKE_MODEL=1 ./build/flatwhite -p "hello" --output-format text
 ```
 
 For model-backed use, ensure Ollama is running locally and then select a mode:
 
 ```bash
-./build/localagent chat -p "summarize this repository"
-./build/localagent agent -p "fix the failing test"
+./build/flatwhite chat -p "summarize this repository"
+./build/flatwhite agent -p "fix the failing test"
 ```
 
 ## CLI usage
 
 ```bash
 # Inspect supported modes and flags
-./build/localagent --help
-./build/localagent --version
+./build/flatwhite
+./build/flatwhite --help
+./build/flatwhite --version
 
 # JSON output for automation
-./build/localagent -p "explain main.cpp" --output-format json
+./build/flatwhite -p "explain main.cpp" --output-format json
 
 # Stored sessions
-./build/localagent sessions list
+./build/flatwhite sessions list
 ```
 
-Use `-p` / `--prompt` or a positional prompt. The CLI provides `chat`, `agent`,
+Run `flatwhite` with no arguments to start an interactive session. It provides
+`/help`, `/exit`, `/new`, `/history`, `/sessions`, `/resume`, `/clear`, and
+`/model` commands. `/model` lists locally available Ollama models and selects
+an exact or uniquely matching prefix; it does not remove model or provider
+safety behavior. Use `-p` / `--prompt` or a positional prompt for one-shot
+requests. The CLI provides `chat`, `agent`,
 `plan`, `ask`, `debug`, `review`, `data`, and `research` modes. In CI and
-offline checks, set `LOCALAGENT_FAKE_MODEL=1` or pass `--fake-model`.
+offline checks, set `FLATWHITE_FAKE_MODEL=1` or pass `--fake-model`.
 
 ## Tests
 
 Run focused unit, integration, or all tests with:
 
 ```bash
-./build/localagent_tests
+./build/flatwhite_tests
 ctest --test-dir build -R '^integration_' --output-on-failure
 ctest --test-dir build --output-on-failure
 ```
@@ -96,7 +102,7 @@ trust boundary: run the agent only in workspaces and environments you trust.
 
 `web_search` uses an HTTP provider endpoint, defaults to DuckDuckGo's HTML
 endpoint, and does not require an SDK or credentials. Configure a different
-provider with `LOCALAGENT_WEB_SEARCH_ENDPOINT` or `[web_search].endpoint`;
+provider with `FLATWHITE_WEB_SEARCH_ENDPOINT` or `[web_search].endpoint`;
 include `{query}` where its percent-encoded query belongs.
 
 ## Documentation

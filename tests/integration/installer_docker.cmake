@@ -1,17 +1,17 @@
-if(NOT DEFINED LOCALAGENT_DOCKER OR NOT DEFINED LOCALAGENT_SOURCE_DIR OR
-   NOT DEFINED LOCALAGENT_TEST_DIR)
+if(NOT DEFINED FLATWHITE_DOCKER OR NOT DEFINED FLATWHITE_SOURCE_DIR OR
+   NOT DEFINED FLATWHITE_TEST_DIR)
   message(FATAL_ERROR "Docker installer test parameters are required")
 endif()
 
-file(MAKE_DIRECTORY "${LOCALAGENT_TEST_DIR}")
-set(image_id_file "${LOCALAGENT_TEST_DIR}/installer-image-id.txt")
+file(MAKE_DIRECTORY "${FLATWHITE_TEST_DIR}")
+set(image_id_file "${FLATWHITE_TEST_DIR}/installer-image-id.txt")
 file(REMOVE "${image_id_file}")
 
 execute_process(
-  COMMAND "${LOCALAGENT_DOCKER}" build --progress=plain
+  COMMAND "${FLATWHITE_DOCKER}" build --progress=plain
     --iidfile "${image_id_file}"
-    --file "${LOCALAGENT_SOURCE_DIR}/tests/integration/Dockerfile.installer"
-    "${LOCALAGENT_SOURCE_DIR}"
+    --file "${FLATWHITE_SOURCE_DIR}/tests/integration/Dockerfile.installer"
+    "${FLATWHITE_SOURCE_DIR}"
   RESULT_VARIABLE result
   OUTPUT_VARIABLE output
   ERROR_VARIABLE error
@@ -29,4 +29,4 @@ string(STRIP "${image_id}" image_id)
 if(image_id STREQUAL "")
   message(FATAL_ERROR "Docker installer integration did not produce an image ID")
 endif()
-execute_process(COMMAND "${LOCALAGENT_DOCKER}" image rm --force "${image_id}")
+execute_process(COMMAND "${FLATWHITE_DOCKER}" image rm --force "${image_id}")

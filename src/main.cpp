@@ -1,6 +1,7 @@
 #include "localagent/agent/runtime/agent_runtime.hpp"
 #include "localagent/app/session_controller.hpp"
 #include "localagent/cli/command_router.hpp"
+#include "localagent/cli/interactive_session.hpp"
 #include "localagent/config/config.hpp"
 #include "localagent/model/ollama/ollama_backend.hpp"
 #include "localagent/persistence/event_log.hpp"
@@ -9,6 +10,10 @@
 
 #include <iostream>
 #include <memory>
+
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
 
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
@@ -42,7 +47,7 @@ std::shared_ptr<localagent::ModelBackend> make_model_backend(const localagent::C
                 .message =
                     localagent::Message{
                         .role = localagent::MessageRole::Assistant,
-                        .content = "Hello from localagent.",
+                        .content = "Hello from flatwhite.",
                     },
             },
     });
@@ -62,7 +67,7 @@ std::shared_ptr<localagent::ModelBackend> make_model_backend(const localagent::C
 }  // namespace
 
 int main(int argc, char** argv) {
-  spdlog::set_default_logger(spdlog::stderr_color_mt("localagent"));
+  spdlog::set_default_logger(spdlog::stderr_color_mt("flatwhite"));
   spdlog::set_level(spdlog::level::info);
   const auto cfg = localagent::load_config(argc, argv);
   localagent::CommandRouter router;
@@ -78,6 +83,17 @@ int main(int argc, char** argv) {
   }
 
   localagent::SessionController sessions(cfg.data_dir);
+  if (cmd.kind == localagent::CommandKind::Interactive) {
+    auto model = make_model_backend(cfg);
+#if defined(_WIN32)
+    constexpr bool use_color = false;
+#else
+    const bool use_color = ::isatty(fileno(stdin)) && ::isatty(fileno(stdout));
+#endif
+    return localagent::InteractiveSession(cfg, sessions, std::move(model), std::cin, std::cout,
+                                          std::cerr, use_color)
+        .run();
+  }
   if (cmd.kind == localagent::CommandKind::SessionsList) {
     for (const auto& s : sessions.list()) {
       std::cout << s.id.str() << "\t" << s.title << "\t" << s.updated_at << "\n";

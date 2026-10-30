@@ -43,7 +43,7 @@ jobs:
         run: |
           cmake -S . -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DLOCALAGENT_BUILD_TESTS=ON
+            -DFLATWHITE_BUILD_TESTS=ON
 
       - name: Build
         run: cmake --build build --parallel
@@ -53,9 +53,9 @@ jobs:
 
       - name: CLI smoke
         run: |
-          ./build/localagent --help
-          ./build/localagent --version
-          LOCALAGENT_FAKE_MODEL=1 ./build/localagent -p "hello" --output-format text --data-dir "$RUNNER_TEMP/localagent-data"
+          ./build/flatwhite --help
+          ./build/flatwhite --version
+          FLATWHITE_FAKE_MODEL=1 ./build/flatwhite -p "hello" --output-format text --data-dir "$RUNNER_TEMP/flatwhite-data"
 
   sanitizers:
     name: ASan + UBSan
@@ -73,9 +73,9 @@ jobs:
         run: |
           cmake -S . -B build-san -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DLOCALAGENT_BUILD_TESTS=ON \
-            -DLOCALAGENT_ENABLE_ASAN=ON \
-            -DLOCALAGENT_ENABLE_UBSAN=ON
+            -DFLATWHITE_BUILD_TESTS=ON \
+            -DFLATWHITE_ENABLE_ASAN=ON \
+            -DFLATWHITE_ENABLE_UBSAN=ON
 
       - name: Build
         run: cmake --build build-san --parallel

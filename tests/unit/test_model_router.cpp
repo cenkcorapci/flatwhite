@@ -15,6 +15,22 @@ RoutingRequest base_request() {
   return request;
 }
 
+class TagsTransport final : public ollama::HttpTransport {
+public:
+  [[nodiscard]] ollama::HttpResponse post(const std::string&, const std::string&, bool,
+                                          ollama::StreamDataCallback) override {
+    return {.error = "unexpected POST"};
+  }
+
+  [[nodiscard]] ollama::HttpResponse get(const std::string& url) override {
+    seen_url = url;
+    return {.status_code = 200,
+            .body = R"({"models":[{"name":"llama3.2","size":2147483648},{"name":"qwen3"}]})"};
+  }
+
+  std::string seen_url;
+};
+
 }  // namespace
 
 TEST_CASE("ModelRegistry loads default fast-code and main-reasoner models", "[model_router]") {
@@ -136,4 +152,18 @@ TEST_CASE("FakeModelBackend supports scripted stream chunks", "[model_router]") 
 
   CHECK(streamed == "ab");
   CHECK(response.message.content == "ab");
+}
+
+TEST_CASE("Ollama model listing parses the tags response through injected transport",
+          "[model_router]") {
+  auto transport = std::make_shared<TagsTransport>();
+  ollama::OllamaBackend backend({.base_url = "http://ollama.test"}, transport);
+
+  const auto models = backend.list_models();
+
+  REQUIRE(models.size() == 2);
+  CHECK(transport->seen_url == "http://ollama.test/api/tags");
+  CHECK(models[0].id == ModelId{"llama3.2"});
+  CHECK(models[0].memory_mb == 2048);
+  CHECK(models[1].id == ModelId{"qwen3"});
 }

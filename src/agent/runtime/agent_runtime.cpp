@@ -42,7 +42,7 @@ ChatRequest AgentRuntime::build_chat_request(const RunRequest& request, const Bu
   chat.model = request.model;
 
   std::ostringstream system;
-  system << "You are localagent. Workspace: " << request.workspace_root.string() << "\n\n";
+  system << "You are Flatwhite. Workspace: " << request.workspace_root.string() << "\n\n";
   for (const auto& item : ctx.items) {
     system << "[" << item.label << "]\n" << item.content << "\n\n";
   }

@@ -14,8 +14,8 @@ RUN git init -b main && \
     git commit -m installer-test
 
 RUN curl -fsSL file:///source/install.sh | \
-    env LOCALAGENT_REPO_URL=file:///source \
-        LOCALAGENT_REPO_REF=main \
-        LOCALAGENT_INSTALL_DIR=/opt/localagent sh
-RUN test -x /opt/localagent/bin/localagent && \
-    /opt/localagent/bin/localagent --help | grep -q 'Usage:'
+    env FLATWHITE_REPO_URL=file:///source \
+        FLATWHITE_REPO_REF=main \
+        FLATWHITE_INSTALL_DIR=/opt/flatwhite sh
+RUN test -x /opt/flatwhite/bin/flatwhite && \
+    /opt/flatwhite/bin/flatwhite --help | grep -q 'Usage:'
